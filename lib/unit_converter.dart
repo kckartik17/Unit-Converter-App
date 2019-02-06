@@ -1,7 +1,3 @@
-// Copyright 2018 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -13,13 +9,9 @@ import 'unit.dart';
 
 const _padding = EdgeInsets.all(16.0);
 
-/// [UnitConverter] where users can input amounts to convert in one [Unit]
-/// and retrieve the conversion in another [Unit] for a specific [Category].
 class UnitConverter extends StatefulWidget {
-  /// The current [Category] for unit conversion.
   final Category category;
 
-  /// This [UnitConverter] takes in a [Category] with [Units]. It can't be null.
   const UnitConverter({
     @required this.category,
   }) : assert(category != null);
@@ -48,14 +40,12 @@ class _UnitConverterState extends State<UnitConverter> {
   @override
   void didUpdateWidget(UnitConverter old) {
     super.didUpdateWidget(old);
-    // We update our [DropdownMenuItem] units when we switch [Categories].
     if (old.category != widget.category) {
       _createDropdownMenuItems();
       _setDefaults();
     }
   }
 
-  /// Creates fresh list of [DropdownMenuItem] widgets, given a list of [Unit]s.
   void _createDropdownMenuItems() {
     var newItems = <DropdownMenuItem>[];
     for (var unit in widget.category.units) {
@@ -74,8 +64,6 @@ class _UnitConverterState extends State<UnitConverter> {
     });
   }
 
-  /// Sets the default values for the 'from' and 'to' [Dropdown]s, and the
-  /// updated output value if a user had previously entered an input.
   void _setDefaults() {
     setState(() {
       _fromValue = widget.category.units[0];
@@ -86,7 +74,6 @@ class _UnitConverterState extends State<UnitConverter> {
     }
   }
 
-  /// Clean up conversion; trim trailing zeros, e.g. 5.500 -> 5.5, 10.0 -> 10
   String _format(double conversion) {
     var outputNum = conversion.toStringAsPrecision(7);
     if (outputNum.contains('.') && outputNum.endsWith('0')) {
@@ -103,13 +90,10 @@ class _UnitConverterState extends State<UnitConverter> {
   }
 
   Future<void> _updateConversion() async {
-    // Our API has a handy convert function, so we can use that for
-    // the Currency [Category]
     if (widget.category.name == apiCategory['name']) {
       final api = Api();
       final conversion = await api.convert(apiCategory['route'],
           _inputValue.toString(), _fromValue.name, _toValue.name);
-      // API error or not connected to the internet
       if (conversion == null) {
         setState(() {
           _showErrorUI = true;
@@ -120,7 +104,6 @@ class _UnitConverterState extends State<UnitConverter> {
         });
       }
     } else {
-      // For the static units, we do the conversion ourselves
       setState(() {
         _convertedValue = _format(
             _inputValue * (_toValue.conversion / _fromValue.conversion));
@@ -133,8 +116,6 @@ class _UnitConverterState extends State<UnitConverter> {
       if (input == null || input.isEmpty) {
         _convertedValue = '';
       } else {
-        // Even though we are using the numerical keyboard, we still have to check
-        // for non-numerical input such as '5..0' or '6 -3'
         try {
           final inputDouble = double.parse(input);
           _showValidationError = false;
@@ -179,7 +160,6 @@ class _UnitConverterState extends State<UnitConverter> {
     return Container(
       margin: EdgeInsets.only(top: 16.0),
       decoration: BoxDecoration(
-        // This sets the color of the [DropdownButton] itself
         color: Colors.grey[50],
         border: Border.all(
           color: Colors.grey[400],
@@ -188,7 +168,6 @@ class _UnitConverterState extends State<UnitConverter> {
       ),
       padding: EdgeInsets.symmetric(vertical: 8.0),
       child: Theme(
-        // This sets the color of the [DropdownMenuItem]
         data: Theme.of(context).copyWith(
           canvasColor: Colors.grey[50],
         ),
@@ -246,9 +225,6 @@ class _UnitConverterState extends State<UnitConverter> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // This is the widget that accepts text input. In this case, it
-          // accepts numbers and calls the onChanged property on update.
-          // You can read more about it here: https://flutter.io/text-input
           TextField(
             key: _inputKey,
             style: Theme.of(context).textTheme.display1,
@@ -260,8 +236,6 @@ class _UnitConverterState extends State<UnitConverter> {
                 borderRadius: BorderRadius.circular(0.0),
               ),
             ),
-            // Since we only want numerical input, we use a number keyboard. There
-            // are also other keyboards for dates, emails, phone numbers, etc.
             keyboardType: TextInputType.number,
             onChanged: _updateInputValue,
           ),
@@ -309,8 +283,6 @@ class _UnitConverterState extends State<UnitConverter> {
       ],
     );
 
-    // Based on the orientation of the parent widget, figure out how to best
-    // lay out our converter.
     return Padding(
       padding: _padding,
       child: OrientationBuilder(
